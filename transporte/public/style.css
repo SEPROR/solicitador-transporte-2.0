@@ -92,11 +92,11 @@ button:hover {
     text-decoration: underline;
 }
 
-.chamados-lista {
+.solicitacoes-lista {
     margin-bottom: 30px;
 }
 
-.chamado {
+.solicitacao {
     border: 1px solid #ddd;
     border-radius: 4px;
     padding: 15px;
@@ -104,11 +104,11 @@ button:hover {
     background-color: #fff;
 }
 
-.chamado.em_andamento {
+.solicitacao.em_andamento {
     border-left: 4px solid #3498db;
 }
 
-.chamado.fechado {
+.solicitacao.fechado {
     border-left: 4px solid #27ae60;
 }
 
@@ -120,12 +120,12 @@ button:hover {
     font-weight: bold;
 }
 
-.chamado.em_andamento .status-badge {
+.solicitacao.em_andamento .status-badge {
     background-color: #3498db;
     color: white;
 }
 
-.chamado.fechado .status-badge {
+.solicitacao.fechado .status-badge {
     background-color: #27ae60;
     color: white;
 }
@@ -137,7 +137,7 @@ button:hover {
     margin-top: 10px;
 }
 
-.acoes-chamado {
+.acoes-solicitacao {
     margin-top: 15px;
     padding-top: 15px;
     border-top: 1px solid #eee;
@@ -247,17 +247,17 @@ button:hover {
     font-size: 14px;
 }
 
-.chamado.aberto {
+.solicitacao.aberto {
     border-left: 4px solid #ffc107;
     background-color: #fff8e1;
 }
 
-.chamado.em_andamento {
+.solicitacao.em_andamento {
     border-left: 4px solid #17a2b8;
     background-color: #e3f2fd;
 }
 
-.chamado.fechado {
+.solicitacao.fechado {
     border-left: 4px solid #28a745;
     background-color: #f0fff4;
 }
@@ -271,17 +271,17 @@ button:hover {
     margin-left: 10px;
 }
 
-.chamado.aberto .status-badge {
+.solicitacao.aberto .status-badge {
     background-color: #ffc107;
     color: #000;
 }
 
-.chamado.em_andamento .status-badge {
+.solicitacao.em_andamento .status-badge {
     background-color: #17a2b8;
     color: white;
 }
 
-.chamado.fechado .status-badge {
+.solicitacao.fechado .status-badge {
     background-color: #28a745;
     color: white;
 }
@@ -294,13 +294,13 @@ button:hover {
     border-left: 3px solid #6c757d;
 }
 
-.acoes-chamado {
+.acoes-solicitacao {
     margin-top: 15px;
     padding-top: 15px;
     border-top: 1px solid #dee2e6;
 }
 
-.acoes-chamado button {
+.acoes-solicitacao button {
     margin-right: 10px;
     margin-bottom: 5px;
 }

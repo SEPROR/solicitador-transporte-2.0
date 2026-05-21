@@ -54,7 +54,7 @@
                </select>
                 </div>  -->
                 
-                <button type="submit">Adicionar Técnico</button>
+                <button type="submit">Adicionar Motorista</button>
             </form>
             
             <div id="mensagemMotorista" class="mensagem"></div>
@@ -116,18 +116,18 @@ async function fazerLogout() {
 // Carregar níveis de técnico e técnicos
 async function carregarDados() {
     try {
-       // Carregar níveis
+        // //Carregar níveis
         // const responseNiveis = await fetch('/api/nivel-tecnico');
         // const niveis = await responseNiveis.json();
         
         // const selectNivel = document.getElementById('nivel_id');
         // selectNivel.innerHTML = '<option value="">Selecione o nível</option>';
         // niveis.forEach(nivel => {
-        //     const option = document.createElement('option');
-        //     option.value = nivel.id;
-        //     option.textContent = `${nivel.nome} (${nivel.descricao})`;
-        //     selectNivel.appendChild(option);
-        // });
+        //      const option = document.createElement('option');
+        //      option.value = nivel.id;
+        //      option.textContent = `${nivel.nome} (${nivel.descricao})`;
+        //      selectNivel.appendChild(option);
+        //  });
         
         // Carregar técnicos
         await carregarMotoristas(); 
@@ -143,12 +143,12 @@ async function carregarMotoristas() {
         const motoristas = await response.json();
         
         // Carregar níveis para exibir informações completas
-        const responseNiveis = await fetch('/api/nivel-tecnico');
-        const niveis = await responseNiveis.json();
-        const niveisMap = {};
-        niveis.forEach(nivel => {
-            niveisMap[nivel.id] = nivel;
-        });
+        // const responseNiveis = await fetch('/api/nivel-tecnico');
+        // const niveis = await responseNiveis.json();
+        // const niveisMap = {};
+        // niveis.forEach(nivel => {
+        //     niveisMap[nivel.id] = nivel;
+        // });
         
         const listaMotoristas = document.getElementById('listaMotoristas');
         listaMotoristas.innerHTML = '';
@@ -159,8 +159,8 @@ async function carregarMotoristas() {
         }
         
         motoristas.forEach(motorista => {
-            const nivelInfo = niveisMap[motorista.nivel_id] || {};
-            const nivelClass = nivelInfo.codigo_acesso ? `nivel-${nivelInfo.codigo_acesso.toLowerCase()}` : '';
+            // const nivelInfo = niveisMap[motorista.nivel_id] || {};
+            // const nivelClass = nivelInfo.codigo_acesso ? `nivel-${nivelInfo.codigo_acesso.toLowerCase()}` : '';
             
             const motoristaElement = document.createElement('div');
             motoristaElement.className = `item-lista ${motorista.ativo ? '' : 'inativo'}`;
@@ -170,7 +170,6 @@ async function carregarMotoristas() {
                     <h3>${motorista.nome} ${motorista.ativo ? '' : '<span class="status-badge">Inativo</span>'}</h3>
                     <p>WhatsApp: ${formatarWhatsApp(motorista.whatsapp)}</p>
                     <p>Usuário: ${motorista.usuario_login || 'Não definido'}</p>
-                    <p>Nível: ${nivelInfo.codigo_acesso ? `<span class="nivel-badge ${nivelClass}">${nivelInfo.codigo_acesso}</span> - ${nivelInfo.descricao}` : 'Não definido'}</p>
                 </div>
                 
                 <div class="item-acoes">
@@ -240,15 +239,15 @@ document.getElementById('motoristaForm').addEventListener('submit', async (e) =>
 });
 
 // Editar técnico
-async function editarMotorista(id, nome, whatsapp, nivel_id, ativo, usuario_login) {
+async function editarMotorista(id, nome, whatsapp, ativo, usuario_login) {
     // Carregar níveis para o prompt
-    const responseNiveis = await fetch('/api/nivel-tecnico');
-    const niveis = await responseNiveis.json();
+    // const responseNiveis = await fetch('/api/nivel-tecnico');
+    // const niveis = await responseNiveis.json();
     
-    let niveisTexto = 'Níveis disponíveis:\n';
-    niveis.forEach((nivel, index) => {
-        niveisTexto += `${index + 1}. ${nivel.codigo_acesso} - ${nivel.descricao}\n`;
-    });
+    // let niveisTexto = 'Níveis disponíveis:\n';
+    // niveis.forEach((nivel, index) => {
+    //     niveisTexto += `${index + 1}. ${nivel.codigo_acesso} - ${nivel.descricao}\n`;
+    // });
     
     const novoNome = prompt('Editar nome do técnico:', nome);
     if (novoNome === null) return;
@@ -259,11 +258,11 @@ async function editarMotorista(id, nome, whatsapp, nivel_id, ativo, usuario_logi
     const novoUsuarioLogin = prompt('Editar usuário de login:', usuario_login || '');
     if (novoUsuarioLogin === null) return;
     
-    const nivelEscolha = prompt(`${niveisTexto}\nDigite o número do novo nível (1-${niveis.length}):`, 
-                            niveis.findIndex(n => n.id === nivel_id) + 1);
-    if (nivelEscolha === null) return;
+    // const nivelEscolha = prompt(`${niveisTexto}\nDigite o número do novo nível (1-${niveis.length}):`, 
+    //                         niveis.findIndex(n => n.id === nivel_id) + 1);
+    // if (nivelEscolha === null) return;
     
-    const novoNivelId = niveis[parseInt(nivelEscolha) - 1]?.id || nivel_id;
+    // const novoNivelId = niveis[parseInt(nivelEscolha) - 1]?.id || nivel_id;
     const novoAtivo = confirm('Técnico está ativo?');
     
     fetch(`/api/motoristas/${id}`, {
@@ -274,7 +273,7 @@ async function editarMotorista(id, nome, whatsapp, nivel_id, ativo, usuario_logi
         body: JSON.stringify({
             nome: novoNome,
             whatsapp: novoWhatsapp.replace(/\D/g, ''),
-            nivel_id: novoNivelId,
+            // nivel_id: novoNivelId,
             ativo: novoAtivo,
             usuario_login: novoUsuarioLogin
         })
