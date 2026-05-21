@@ -9,7 +9,7 @@ require('dotenv').config({ path: path.join(__dirname, '../.env') });
 
 const app = express();
 const port = process.env.PORT || 2999;
-const host = process.env.HOST || '0.0.0.0';
+const host = process.env.HOST || 'localhost';
 
 // Middleware
 app.use(bodyParser.json());
@@ -1274,7 +1274,7 @@ app.get('/api/test-telegram', async (req, res) => {
 setInterval(checkTelegramMessages, 3000);
 
 // Iniciar servidor
-app.listen(port, '0.0.0.0', () => {
+app.listen(port, 'localhost', () => {
   console.log(
     `🚀 Servidor rodando: http://localhost:${port}`
   );

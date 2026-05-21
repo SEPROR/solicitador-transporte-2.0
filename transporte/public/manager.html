@@ -207,7 +207,7 @@
                 <p><strong>Solicitante:</strong> ${solicitacao.usuario_nome}</p>
                 <p><strong>Setor:</strong> ${solicitacao.setor_nome}</p>
                 <p><strong>Destino:</strong> ${solicitacao.destino}</p>
-                <p><strong>Data da partida:</strong> ${solicitacao.data}</p>
+                <p><strong>Data da partida:</strong> ${new Date(solicitacao.data).toLocaleDateString('pt-BR', { timeZone: 'America/Manaus' })}</p>
                 <p><strong>Hora da partida:</strong> ${solicitacao.hora}</p>
                 ${solicitacao.motorista_nome ? `<p><strong>Motorista:</strong> ${solicitacao.motorista_nome}</p>` : ''}
                 <p><strong>Solicitação aberta em:</strong> ${dataAbertura}</p>
