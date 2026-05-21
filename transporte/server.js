@@ -1166,15 +1166,15 @@ app.put('/api/motoristas/:id', async (req, res) => {
   const {
     nome,
     whatsapp,
-    nivel_id,
+    // nivel_id,
     ativo,
     usuario_login
   } = req.body;
 
   try {
     const result = await pool.query(
-      'UPDATE motoristas SET nome = $1, whatsapp = $2, nivel_id = $3, ativo = $4, usuario_login = $5 WHERE id = $6 RETURNING *',
-      [nome, whatsapp, nivel_id, ativo, usuario_login, id]
+      'UPDATE motoristas SET nome = $1, whatsapp = $2, ativo = $3, usuario_login = $4 WHERE id = $5 RETURNING *',
+      [nome, whatsapp, ativo, usuario_login, id]
     );
 
     res.json(result.rows[0]);
