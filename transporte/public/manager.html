@@ -1,0 +1,463 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gerenciador de Solicitações</title>
+    <link rel="icon" type="image/svg+xml" href="./images/logo.png" />
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Gerenciador de Solicitações</h1>
+        
+        <div class="link-home">
+            <a href="index.html">Voltar para Abertura de Solicitação</a>
+        </div>
+
+        <div class="user-header">
+            <div class="user-info">
+                <span id="userName">Usuário</span>
+                <button onclick="fazerLogout()" class="logout-btn">Sair</button>
+            </div>
+        </div>
+
+        <div class="filtros">
+            <h3>Filtrar por Status:</h3>
+            <select id="filtroStatus" onchange="filtrarSolicitacoes()">
+                <option value="">Todas as Solicitações</option>
+                <option value="aberto">Abertas (aguardando designação)</option>
+                <option value="em_andamento">Em andamento</option>
+                <option value="fechado">Fechadas</option>
+            </select>
+        </div>
+        
+        <div id="listaSolicitacao">
+            <h2>Solicitações Abertas (Aguardando Designação)</h2>
+            <div id="solicitacoesAbertas" class="solicitacoes-lista"></div>
+            
+            <h2>Solicitações em Andamento</h2>
+            <div id="solicitacoesAndamento" class="solicitacoes-lista"></div>
+            
+            <h2>Solicitações Fechadas</h2>
+            <div id="solicitacoesFechadas" class="solicitacoes-lista"></div>
+        </div>
+        
+        <div class="management-links">
+            <h2>Gerenciamento</h2>
+            <a href="motoristas.html">Gerenciar Motoristas</a>
+            <a href="setores.html">Gerenciar Setores</a>
+            <a href="alterar-senha.html">Alterar Minha Senha</a>
+        </div>
+    </div>
+
+    <script>
+        // Verificar autenticação ao carregar a página
+        async function verificarAutenticacao() {
+            try {
+                const response = await fetch('/api/auth/status');
+                const data = await response.json();
+                
+                if (!data.autenticado) {
+                    window.location.href = '/login.html';
+                    return;
+                }
+                
+                if (data.usuario) {
+                    document.getElementById('userName').textContent = `${data.usuario} (${data.nivelAcesso || 'N/A'})`;
+                }
+                
+                // Carregar solicitações após verificar autenticação
+                await carregarSolicitacoes();
+                
+            } catch (error) {
+                console.error('Erro ao verificar autenticação:', error);
+                window.location.href = '/login.html';
+            }
+        }
+
+        async function fazerLogout() {
+            try {
+                const response = await fetch('/api/logout', { method: 'POST' });
+                const data = await response.json();
+                if (data.success) {
+                    window.location.href = '/login.html';
+                } else {
+                    alert('Erro ao fazer logout. Tente novamente.');
+                }
+            } catch (error) {
+                console.error('Erro no logout:', error);
+                alert('Erro ao fazer logout. Tente novamente.');
+            }
+        }
+
+        // Carregar solicitações
+        async function carregarSolicitacoes() {
+            try {
+                const response = await fetch('/api/solicitacao');
+                const solicitacoes = await response.json();
+                
+                const authResponse = await fetch('/api/auth/status');
+                const authData = await authResponse.json();
+                
+                const abertosContainer = document.getElementById('solicitacoesAbertas');
+                const andamentoContainer = document.getElementById('solicitacoesAndamento');
+                const fechadosContainer = document.getElementById('solicitacoesFechadas');
+                
+                abertosContainer.innerHTML = '';
+                andamentoContainer.innerHTML = '';
+                fechadosContainer.innerHTML = '';
+                
+                let solicitacoesFiltradas = solicitacoes;
+                
+                if (!authData.isAdmin && authData.nivelAcesso && ['N1', 'N2'].includes(authData.nivelAcesso)) {
+                    solicitacoesFiltradas = solicitacoes.filter(solicitacao => 
+                        solicitacao.status === 'aberto' || solicitacao.motorista_id === authData.usuarioId
+                    );
+                    
+                    const infoDiv = document.createElement('div');
+                    infoDiv.className = 'info-nivel';
+                    infoDiv.innerHTML = `
+                        <div class="mensagem info">
+                            <strong>Modo Técnico (Nível ${authData.nivelAcesso}):</strong> 
+                            Você está vendo apenas as solicitações designadas para você e solicitações abertas.
+                        </div>
+                    `;
+                    document.querySelector('.filtros').appendChild(infoDiv);
+                }
+                
+                solicitacoesFiltradas.forEach(solicitacao => {
+                    const solicitacaoElement = criarElementoSolicitacao(solicitacao, authData);
+                    
+                    if (solicitacao.status === 'fechado') {
+                        fechadosContainer.appendChild(solicitacaoElement);
+                    } else if (solicitacao.status === 'em_andamento') {
+                        andamentoContainer.appendChild(solicitacaoElement);
+                    } else if (solicitacao.status === 'aberto') {
+                        abertosContainer.appendChild(solicitacaoElement);
+                    }
+                });
+
+                const filtro = document.getElementById('filtroStatus').value;
+                if (filtro) {
+                    aplicarFiltro(filtro);
+                }
+
+            } catch (error) {
+                console.error('Erro ao carregar solicitações:', error);
+            }
+        }
+
+        function filtrarSolicitacoes() {
+            const filtro = document.getElementById('filtroStatus').value;
+            aplicarFiltro(filtro);
+        }
+
+        function aplicarFiltro(filtro) {
+            const sections = {
+                'aberto': document.getElementById('solicitacoesAbertas'),
+                'em_andamento': document.getElementById('solicitacoesAndamento'),
+                'fechado': document.getElementById('solicitacoesFechadas')
+            };
+
+            if (filtro) {
+                document.querySelectorAll('.solicitacoes-lista').forEach(section => {
+                    section.style.display = 'none';
+                });
+                document.querySelectorAll('h2').forEach(header => {
+                    header.style.display = 'none';
+                });
+
+                sections[filtro].style.display = 'block';
+                sections[filtro].previousElementSibling.style.display = 'block';
+            } else {
+                document.querySelectorAll('.solicitacoes-lista, h2').forEach(element => {
+                    element.style.display = 'block';
+                });
+            }
+        }
+        
+        // Criar elemento HTML para uma solicitação
+        function criarElementoSolicitacao(solicitacao, authData) {
+            const div = document.createElement('div');
+            div.className = `solicitacao ${solicitacao.status}`;
+            div.id = `solicitacao-${solicitacao.id}`;
+            
+            const dataAbertura = new Date(solicitacao.data_abertura).toLocaleString('pt-BR');
+            const dataFechamento = solicitacao.data_fechamento 
+                ? new Date(solicitacao.data_fechamento).toLocaleString('pt-BR') 
+                : 'Não finalizada';
+            
+            let historicoRedirecionamento = '';
+            if (solicitacao.motorista_anterior_nome) {
+                historicoRedirecionamento = `<p><strong>Histórico:</strong> Redirecionada de ${solicitacao.motorista_anterior_nome}</p>`;
+            }
+            
+            const isAdmin = authData.isAdmin || false;
+            const nivelAcesso = authData.nivelAcesso;
+            const usuarioId = authData.usuarioId;
+            
+            const podeDesignar = isAdmin || nivelAcesso === 'N3';
+            const podeFechar = isAdmin || nivelAcesso === 'N3' || 
+                              (['N1', 'N2'].includes(nivelAcesso) && solicitacao.motorista_id === usuarioId);
+            const podeRedirecionar = isAdmin || nivelAcesso === 'N3';
+            
+            div.innerHTML = `
+                <h3>Solicitação #${solicitacao.id} - ${solicitacao.usuario_nome} - <i>${solicitacao.setor_nome}</i><span class="status-badge">${formatarStatus(solicitacao.status)}</span></h3>
+                <p><strong>Solicitante:</strong> ${solicitacao.usuario_nome}</p>
+                <p><strong>Setor:</strong> ${solicitacao.setor_nome}</p>
+                <p><strong>Destino:</strong> ${solicitacao.destino}</p>
+                <p><strong>Data da partida:</strong> ${solicitacao.data}</p>
+                <p><strong>Hora da partida:</strong> ${solicitacao.hora}</p>
+                ${solicitacao.motorista_nome ? `<p><strong>Motorista:</strong> ${solicitacao.motorista_nome}</p>` : ''}
+                <p><strong>Solicitação aberta em:</strong> ${dataAbertura}</p>
+                ${solicitacao.status === 'fechado' ? `<p><strong>Fechada em:</strong> ${dataFechamento}</p>` : ''}
+                ${historicoRedirecionamento}
+                
+                ${solicitacao.status === 'fechado' ? `
+                    <div class="detalhes-solucao">
+                        <p><strong>Problema Especificado:</strong> ${solicitacao.problema || 'Não informado'}</p>
+                        <p><strong>Solução Aplicada:</strong> ${solicitacao.solucao || 'Não informada'}</p>
+                    </div>
+                ` : ''}
+                
+                <div class="acoes-solicitacao">
+                    ${solicitacao.status === 'aberto' && podeDesignar ? `
+                        <button onclick="designarMotorista(${solicitacao.id})">Designar Motorista</button>
+                    ` : ''}
+                    
+                    ${solicitacao.status === 'em_andamento' && podeFechar ? `
+                        <button onclick="fecharSolicitacao(${solicitacao.id})">Fechar Solicitação</button>
+                    ` : ''}
+                    
+                    ${solicitacao.status === 'em_andamento' && podeRedirecionar ? `
+                        <button onclick="mostrarFormRedirecionar(${solicitacao.id})">Redirecionar</button>
+                    ` : ''}
+                    
+                    ${!podeDesignar && !podeFechar && !podeRedirecionar ? `
+                        <span class="sem-acao">Apenas visualização</span>
+                    ` : ''}
+                </div>
+                
+                ${solicitacao.status === 'aberto' && podeDesignar ? `
+                    <div id="formDesignar-${solicitacao.id}" class="form-oculto">
+                        <h4>Designar Motorista</h4>
+                        <form onsubmit="event.preventDefault(); confirmarDesignacao(${solicitacao.id})">
+                            <div class="form-group">
+                                <label for="motoristaDesignar-${solicitacao.id}">Selecionar Motorista:</label>
+                                <select id="motoristaDesignar-${solicitacao.id}" required>
+                                    <option value="">Selecione um motorista</option>
+                                </select>
+                            </div>
+                            <button type="submit">Designar Motorista</button>
+                            <button type="button" onclick="ocultarFormDesignar(${solicitacao.id})">Cancelar</button>
+                        </form>
+                    </div>
+                ` : ''}
+                
+                ${solicitacao.status === 'em_andamento' && podeFechar ? `
+                    <div id="formFechar-${solicitacao.id}" class="form-oculto">
+                        <h4>Fechar Solicitação</h4>
+                        <form onsubmit="event.preventDefault(); confirmarFechamento(${solicitacao.id})">
+                            <div class="form-group">
+                                <label for="problema-${solicitacao.id}">Problema Especificado:</label>
+                                <textarea id="problema-${solicitacao.id}" rows="3" required></textarea>
+                            </div>
+                            <div class="form-group">
+                                <label for="solucao-${solicitacao.id}">Solução Aplicada:</label>
+                                <textarea id="solucao-${solicitacao.id}" rows="3" required></textarea>
+                            </div>
+                            <button type="submit">Confirmar Fechamento</button>
+                            <button type="button" onclick="ocultarFormFechar(${solicitacao.id})">Cancelar</button>
+                        </form>
+                    </div>
+                ` : ''}
+                
+                ${solicitacao.status === 'em_andamento' && podeRedirecionar ? `
+                    <div id="formRedirecionar-${solicitacao.id}" class="form-oculto">
+                        <h4>Redirecionar Solicitação</h4>
+                        <form onsubmit="event.preventDefault(); confirmarRedirecionamento(${solicitacao.id})">
+                            <div class="form-group">
+                                <label for="novoMotorista-${solicitacao.id}">Novo Motorista:</label>
+                                <select id="novoMotorista-${solicitacao.id}" required>
+                                    <option value="">Selecione um Motorista</option>
+                                </select>
+                            </div>
+                            <button type="submit">Confirmar Redirecionamento</button>
+                            <button type="button" onclick="ocultarFormRedirecionar(${solicitacao.id})">Cancelar</button>
+                        </form>
+                    </div>
+                ` : ''}
+            `;
+            
+            if (solicitacao.status !== 'fechado') {
+                setTimeout(() => {
+                    if (solicitacao.status === 'aberto' && podeDesignar) {
+                        preencherSelectMotoristasDesignar(solicitacao.id);
+                    } else if (solicitacao.status === 'em_andamento' && podeRedirecionar) {
+                        preencherSelectMotoristasRedirecionar(solicitacao.id);
+                    }
+                }, 100);
+            }
+            
+            return div;
+        }
+        
+        function formatarStatus(status) {
+            const statusMap = {
+                'aberto': 'Aberto',
+                'em_andamento': 'Em Andamento',
+                'fechado': 'Fechado',
+                'redirecionado': 'Redirecionado'
+            };
+            return statusMap[status] || status;
+        }
+        
+        function designarMotorista(solicitacaoId) {
+            document.querySelectorAll('.form-oculto').forEach(form => form.style.display = 'none');
+            const formDesignar = document.getElementById(`formDesignar-${solicitacaoId}`);
+            if (formDesignar) formDesignar.style.display = 'block';
+        }
+        
+        async function preencherSelectMotoristasDesignar(solicitacaoId) {
+            try {
+                const response = await fetch('/api/motoristas');
+                const motoristas = await response.json();
+                const select = document.getElementById(`motoristaDesignar-${solicitacaoId}`);
+                if (select) {
+                    select.innerHTML = '<option value="">Selecione um motorista</option>';
+                    motoristas.forEach(motorista => {
+                        const option = document.createElement('option');
+                        option.value = motorista.id;
+                        option.textContent = motorista.nome;
+                        select.appendChild(option);
+                    });
+                }
+            } catch (error) {
+                console.error('Erro ao carregar motoristas:', error);
+            }
+        }
+        
+        async function confirmarDesignacao(solicitacaoId) {
+            const motoristaId = document.getElementById(`motoristaDesignar-${solicitacaoId}`).value;
+            if (!motoristaId) {
+                alert('Selecione um motorista para designar a solicitação.');
+                return;
+            }
+            try {
+                const response = await fetch(`/api/solicitacao/${solicitacaoId}/designar`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ motorista_id: motoristaId })
+                });
+                if (response.ok) {
+                    alert('Motorista designado com sucesso!');
+                    carregarSolicitacoes();
+                } else {
+                    throw new Error('Erro ao designar motorista');
+                }
+            } catch (error) {
+                alert('Erro ao designar motorista. Tente novamente.');
+            }
+        }
+        
+        function ocultarFormDesignar(solicitacaoId) {
+            const form = document.getElementById(`formDesignar-${solicitacaoId}`);
+            if (form) form.style.display = 'none';
+        }
+
+        async function preencherSelectMotoristasRedirecionar(solicitacaoId) {
+            try {
+                const solicitacaoResponse = await fetch(`/api/solicitacao/${solicitacaoId}`);
+                const solicitacao = await solicitacaoResponse.json();
+                const motoristasResponse = await fetch('/api/motoristas');
+                const motoristas = await motoristasResponse.json();
+                const select = document.getElementById(`novoMotorista-${solicitacaoId}`);
+                if (!select) return;
+                
+                select.innerHTML = '<option value="">Selecione um motorista</option>';
+                motoristas.forEach(motorista => {
+                    if (motorista.id !== solicitacao.motorista_id) {
+                        const option = document.createElement('option');
+                        option.value = motorista.id;
+                        option.textContent = motorista.nome;
+                        select.appendChild(option);
+                    }
+                });
+            } catch (error) {
+                console.error('Erro ao preencher select de redirecionamento:', error);
+            }
+        }
+        
+        function fecharSolicitacao(solicitacaoId) {
+            document.querySelectorAll('.form-oculto').forEach(form => form.style.display = 'none');
+            const formFechar = document.getElementById(`formFechar-${solicitacaoId}`);
+            if (formFechar) formFechar.style.display = 'block';
+        }
+        
+        function ocultarFormFechar(solicitacaoId) {
+            const form = document.getElementById(`formFechar-${solicitacaoId}`);
+            if (form) form.style.display = 'none';
+        }
+        
+        function mostrarFormRedirecionar(solicitacaoId) {
+            document.querySelectorAll('.form-oculto').forEach(form => form.style.display = 'none');
+            const formRedirecionar = document.getElementById(`formRedirecionar-${solicitacaoId}`);
+            if (formRedirecionar) {
+                formRedirecionar.style.display = 'block';
+                preencherSelectMotoristasRedirecionar(solicitacaoId);
+            }
+        }
+        
+        function ocultarFormRedirecionar(solicitacaoId) {
+            const form = document.getElementById(`formRedirecionar-${solicitacaoId}`);
+            if (form) form.style.display = 'none';
+        }
+        
+        async function confirmarFechamento(solicitacaoId) {
+            const problema = document.getElementById(`problema-${solicitacaoId}`).value;
+            const solucao = document.getElementById(`solucao-${solicitacaoId}`).value;
+            try {
+                const response = await fetch(`/api/solicitacao/${solicitacaoId}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ status: 'fechado', problema, solucao })
+                });
+                if (response.ok) {
+                    alert('Solicitação fechada com sucesso!');
+                    carregarSolicitacoes();
+                } else {
+                    throw new Error('Erro ao fechar solicitação');
+                }
+            } catch (error) {
+                alert('Erro ao fechar solicitação. Tente novamente.');
+            }
+        }
+        
+        async function confirmarRedirecionamento(solicitacaoId) {
+            const novoMotoristaId = document.getElementById(`novoMotorista-${solicitacaoId}`).value;
+            if (!novoMotoristaId) {
+                alert('Selecione um motorista para redirecionar.');
+                return;
+            }
+            try {
+                const response = await fetch(`/api/solicitacao/${solicitacaoId}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ status: 'redirecionado', motorista_id: novoMotoristaId })
+                });
+                if (response.ok) {
+                    alert('Solicitação redirecionada com sucesso!');
+                    carregarSolicitacoes();
+                } else {
+                    throw new Error('Erro ao redirecionar');
+                }
+            } catch (error) {
+                alert('Erro ao redirecionar. Tente novamente.');
+            }
+        }
+        
+        document.addEventListener('DOMContentLoaded', verificarAutenticacao);
+    </script>
+</body>
+</html>
