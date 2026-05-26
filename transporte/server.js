@@ -379,7 +379,7 @@ async function processarRespostaSolicitacao(
 async function processarRegistro(chatId) {
   try {
     // Buscar técnico pelo chat_id para ver se já está registrado
-    const motoristacnicoExistente = await pool.query(
+    const motoristaExistente = await pool.query(
       'SELECT id, nome FROM motoristas WHERE telegram_chat_id = $1',
       [chatId.toString()]
     );

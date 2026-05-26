@@ -85,12 +85,12 @@
                     setorElement.innerHTML = `
                         <div class="item-info">
                             <h3>${setor.nome} ${setor.ativo ? '' : '<span class="status-badge">Inativo</span>'}</h3>
-                         <!--   <p>Descrição: ${setor.descricao || 'Nenhuma descrição'}</p>
+                          <!--   <p>Descrição: ${setor.descricao || 'Nenhuma descrição'}</p> 
                             <p>ID: ${setor.id}</p> -->
                         </div>
                         
                         <div class="item-acoes">
-                            <button onclick="editarSetor(${setor.id}, '${setor.nome}', '${setor.descricao || ''}', ${setor.ativo})">Editar</button>
+                            <button onclick="editarSetor(${setor.id}, '${setor.nome}',  ${setor.ativo})">Editar</button>
                             ${setor.ativo ? `<button onclick="excluirSetor(${setor.id})">Excluir</button>` : ''}
                         </div>
                     `;

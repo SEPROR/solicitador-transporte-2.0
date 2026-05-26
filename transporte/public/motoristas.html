@@ -263,7 +263,7 @@ async function editarMotorista(id, nome, whatsapp, ativo, usuario_login) {
     //     niveisTexto += `${index + 1}. ${nivel.codigo_acesso} - ${nivel.descricao}\n`;
     // });
     
-    const novoNome = prompt('Editar nome do técnico:', nome);
+    const novoNome = prompt('Editar nome do Motorista:', nome);
     if (novoNome === null) return;
     
     const novoWhatsapp = prompt('Editar WhatsApp (apenas números, ex: 11999999999):', whatsapp);
@@ -277,7 +277,7 @@ async function editarMotorista(id, nome, whatsapp, ativo, usuario_login) {
     // if (nivelEscolha === null) return;
     
     // const novoNivelId = niveis[parseInt(nivelEscolha) - 1]?.id || nivel_id;
-    const novoAtivo = confirm('Técnico está ativo?');
+    const novoAtivo = confirm('Motorista está ativo?');
     
     fetch(`/api/motoristas/${id}`, {
         method: 'PUT',
@@ -294,17 +294,17 @@ async function editarMotorista(id, nome, whatsapp, ativo, usuario_login) {
     })
     .then(response => response.json())
     .then(data => {
-        alert('Técnico atualizado com sucesso!');
+        alert('Motorista atualizado com sucesso!');
         carregarMotoristas();
     })
     .catch(error => {
         console.error('Erro:', error);
-        alert('Erro ao atualizar técnico.');
+        alert('Erro ao atualizar motorista.');
     });
 }
 // Excluir técnico
 function excluirMotorista(id) {
-    if (!confirm('Tem certeza que deseja excluir este técnico?')) return;
+    if (!confirm('Tem certeza que deseja excluir este motorista?')) return;
     
     fetch(`/api/motoristas/${id}`, {
         method: 'DELETE'
@@ -320,7 +320,7 @@ function excluirMotorista(id) {
     })
     .catch(error => {
         console.error('Erro:', error);
-        alert('Erro ao excluir técnico.');
+        alert('Erro ao excluir motorista.');
     });
 }
 
