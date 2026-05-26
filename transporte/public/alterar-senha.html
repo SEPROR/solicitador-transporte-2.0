@@ -6,21 +6,25 @@
     <link rel="icon" type="image/svg+xml" href="./images/logo.png" />
     <title>Alterar Senha</title>
     <link rel="stylesheet" href="style.css">
+
+    <!-- HEADER -->
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            fetch("header.html")
+                .then(response => response.text())
+                .then(data => {
+                    document.getElementById("header-placeholder").innerHTML = data;
+                })
+                .catch(error => console.error("Erro ao carregar o header:", error));
+        });
+    </script>
 </head>
 <body>
+
+    <div id="header-placeholder"></div>
+
     <div class="container">
         <h1>Alterar Senha</h1>
-        
-        <div class="user-header">
-            <div class="user-info">
-                <span id="userName">Usuário</span>
-                <button onclick="fazerLogout()" class="logout-btn">Sair</button>
-            </div>
-        </div>
-        
-        <div class="link-home">
-            <a href="manager.html">← Voltar para o Gerenciador</a>
-        </div>
         
         <div class="management-section">
             <form id="alterarSenhaForm">

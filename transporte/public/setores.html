@@ -6,16 +6,25 @@
     <link rel="icon" type="image/svg+xml" href="./images/logo.png" />
     <title>Gerenciar Setores</title>
     <link rel="stylesheet" href="style.css">
+
+    <!-- HEADER -->
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            fetch("header.html")
+                .then(response => response.text())
+                .then(data => {
+                    document.getElementById("header-placeholder").innerHTML = data;
+                })
+                .catch(error => console.error("Erro ao carregar o header:", error));
+        });
+    </script>
 </head>
 <body>
+
+    <div id="header-placeholder"></div>
+
     <div class="container">
         <h1>Gerenciar Setores</h1>
-        
-        <div class="link-home">
-            <a href="index.html">Voltar para Abertura de Chamado</a>
-            <a>  ||  </a>
-            <a href="manager.html">Voltar para Gerenciador de Chamados</a>
-        </div>
         
         <div class="management-section">
             <h2>Adicionar Novo Setor</h2>

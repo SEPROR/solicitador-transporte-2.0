@@ -6,21 +6,30 @@
     <title>Gerenciador de Solicitações</title>
     <link rel="icon" type="image/svg+xml" href="./images/logo.png" />
     <link rel="stylesheet" href="style.css">
+
+    <!-- HEADER -->
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            fetch("header.html")
+                .then(response => response.text())
+                .then(data => {
+                    document.getElementById("header-placeholder").innerHTML = data;
+                })
+                .catch(error => console.error("Erro ao carregar o header:", error));
+        });
+
+        const userNameEl = document.getElementById('userName');
+        if (userNameEl) {
+        userNameEl.textContent = `${data.usuario} (${data.nivelAcesso || 'N/A'})`;
+}
+    </script>
 </head>
 <body>
+
+    <div id="header-placeholder"></div>
+
     <div class="container">
         <h1>Gerenciador de Solicitações</h1>
-        
-        <div class="link-home">
-            <a href="index.html">Voltar para Abertura de Solicitação</a>
-        </div>
-
-        <div class="user-header">
-            <div class="user-info">
-                <span id="userName">Usuário</span>
-                <button onclick="fazerLogout()" class="logout-btn">Sair</button>
-            </div>
-        </div>
 
         <div class="filtros">
             <h3>Filtrar por Status:</h3>
@@ -43,12 +52,6 @@
             <div id="solicitacoesFechadas" class="solicitacoes-lista"></div>
         </div>
         
-        <div class="management-links">
-            <h2>Gerenciamento</h2>
-            <a href="motoristas.html">Gerenciar Motoristas</a>
-            <a href="setores.html">Gerenciar Setores</a>
-            <a href="alterar-senha.html">Alterar Minha Senha</a>
-        </div>
     </div>
 
     <script>
