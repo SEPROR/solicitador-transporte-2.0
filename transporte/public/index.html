@@ -7,37 +7,51 @@
     <link rel="icon" type="image/svg+xml" href="./images/logo.png" />
     <title>Solicitaçao</title>
     <link rel="stylesheet" href="style.css">
-</head>
+ 
+    <!-- HEADER -->
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            fetch("header.html")
+                .then(response => response.text())
+                .then(data => {
+                    document.getElementById("header-placeholder").innerHTML = data;
+                })
+                .catch(error => console.error("Erro ao carregar o header:", error));
+        });
+    </script>
 
+</head>
 <body>
 
+    <div id="header-placeholder"></div>
+    
     <div class="container">
         <h1>Solicitação de Transporte</h1>
 
         <form id="chamadoForm">
-            <div class="form-group">
+            <div class="form-group field-nome">
                 <label for="usuario_nome">Seu Nome:</label>
                 <input type="text" id="usuario_nome" name="usuario_nome" required>
             </div>
 
-            <div class="form-group">
+            <div class="form-group field-setor">
                 <label for="setor">Setor :</label>
                 <select id="setor" name="setor_id" required>
                     <option value="">Selecione o setor</option>
                 </select>
             </div>
 
-            <div class="form-group">
+            <div class="form-group field-destino">
                 <label for="Destino">Destino:</label>
                 <input type="text" id="destino" name="destino" required>
             </div>
 
-            <div class="form-group">
+            <div class="form-group field-data">
                 <label for="data">Data:</label>
                 <input type="date" id="data" name="data" required>
             </div>
 
-            <div class="form-group">
+            <div class="form-group field-hora">
                 <label for="hora">Horário:</label>
                 <input type="time" id="hora" name="hora" required>
             </div>
