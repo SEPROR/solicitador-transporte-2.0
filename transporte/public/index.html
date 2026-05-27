@@ -8,7 +8,7 @@
     <title>Solicitaçao</title>
     <link rel="stylesheet" href="style.css">
  
-    <!-- HEADER -->
+    <!-- HEADER E FOOTER -->
     <script>
         document.addEventListener("DOMContentLoaded", function () {
             fetch("header.html")
@@ -17,14 +17,21 @@
                     document.getElementById("header-placeholder").innerHTML = data;
                 })
                 .catch(error => console.error("Erro ao carregar o header:", error));
-        });
+
+                    fetch('footer.html')
+                .then(res => res.text())
+                .then(html => {
+                    document.getElementById('footer-placeholder').innerHTML = html;
+                });
+        });        
     </script>
 
 </head>
 <body>
 
     <div id="header-placeholder"></div>
-    
+
+    <main>
     <div class="container">
         <h1>Solicitação de Transporte</h1>
 
@@ -62,6 +69,9 @@
         <div id="mensagem" class="mensagem"></div>
 
     </div>
+    </main>
+
+    <div id="footer-placeholder"></div>
 
     <script>
         // Carregar setores ao iniciar a página
@@ -125,6 +135,7 @@
             }
         });
     </script>
+
 </body>
 
 </html>

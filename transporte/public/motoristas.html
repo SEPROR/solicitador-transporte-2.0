@@ -7,7 +7,7 @@
     <title>Gerenciar Motorista</title>
     <link rel="stylesheet" href="style.css">
 
-    <!-- HEADER -->
+    <!-- HEADER E FOOTER-->
     <script>
         document.addEventListener("DOMContentLoaded", function () {
             fetch("header.html")
@@ -16,12 +16,20 @@
                     document.getElementById("header-placeholder").innerHTML = data;
                 })
                 .catch(error => console.error("Erro ao carregar o header:", error));
-        });
+
+                    fetch('footer.html')
+                .then(res => res.text())
+                .then(html => {
+                    document.getElementById('footer-placeholder').innerHTML = html;
+                });
+        });        
     </script>
+
 </head>
 
 <body>
 
+    <main>
     <div id="header-placeholder"></div>
 
     <div class="container">
@@ -67,6 +75,10 @@
             <div id="listaMotoristas"></div>
         </div>
     </div>
+
+    </main>
+
+    <div id="footer-placeholder"></div>
 
     <script>
        // Verificar autenticação ao carregar a página
@@ -315,5 +327,6 @@ function excluirMotorista(id) {
 // Verificar autenticação quando a página carregar
 document.addEventListener('DOMContentLoaded', verificarAutenticacao);
     </script>
+
 </body>
 </html>

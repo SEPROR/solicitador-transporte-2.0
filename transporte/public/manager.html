@@ -7,7 +7,7 @@
     <link rel="icon" type="image/svg+xml" href="./images/logo.png" />
     <link rel="stylesheet" href="style.css">
 
-    <!-- HEADER -->
+    <!-- HEADER E FOOTER-->
     <script>
         document.addEventListener("DOMContentLoaded", function () {
             fetch("header.html")
@@ -16,18 +16,21 @@
                     document.getElementById("header-placeholder").innerHTML = data;
                 })
                 .catch(error => console.error("Erro ao carregar o header:", error));
-        });
 
-        const userNameEl = document.getElementById('userName');
-        if (userNameEl) {
-        userNameEl.textContent = `${data.usuario} (${data.nivelAcesso || 'N/A'})`;
-}
+                    fetch('footer.html')
+                .then(res => res.text())
+                .then(html => {
+                    document.getElementById('footer-placeholder').innerHTML = html;
+                });
+        });        
     </script>
+
 </head>
 <body>
 
     <div id="header-placeholder"></div>
 
+    <main>
     <div class="container">
         <h1>Gerenciador de Solicitações</h1>
 
@@ -53,6 +56,9 @@
         </div>
         
     </div>
+    </main>
+
+    <div id="footer-placeholder"></div>
 
     <script>
         // Verificar autenticação ao carregar a página
@@ -462,5 +468,8 @@
         
         document.addEventListener('DOMContentLoaded', verificarAutenticacao);
     </script>
+
+    <div id="footer-placeholder"></div>
+
 </body>
 </html>

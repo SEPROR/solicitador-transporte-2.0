@@ -7,7 +7,7 @@
     <title>Gerenciar Setores</title>
     <link rel="stylesheet" href="style.css">
 
-    <!-- HEADER -->
+    <!-- HEADER E FOOTER-->
     <script>
         document.addEventListener("DOMContentLoaded", function () {
             fetch("header.html")
@@ -16,11 +16,19 @@
                     document.getElementById("header-placeholder").innerHTML = data;
                 })
                 .catch(error => console.error("Erro ao carregar o header:", error));
-        });
+
+                    fetch('footer.html')
+                .then(res => res.text())
+                .then(html => {
+                    document.getElementById('footer-placeholder').innerHTML = html;
+                });
+        });        
     </script>
+
 </head>
 <body>
 
+    <main>
     <div id="header-placeholder"></div>
 
     <div class="container">
@@ -50,6 +58,10 @@
             <div id="listaSetores"></div>
         </div>
     </div>
+
+    </main>
+
+    <div id="footer-placeholder"></div>
 
     <script>
         // Carregar setores
@@ -186,5 +198,8 @@
         // Carregar setores quando a página for carregada
         document.addEventListener('DOMContentLoaded', carregarSetores);
     </script>
+
+    <div id="footer-placeholder"></div>
+
 </body>
 </html>
