@@ -450,8 +450,8 @@ async function processarVinculacao(chatId, texto) {
     await enviarMensagemTelegram(
       chatId,
       `✅ *REGISTRO CONCLUÍDO!*\n\n` +
-        `Você foi vinculado como: *${motorista.nome}*\n\n` +
-        `Agora você receberá notificações de novas solicitações!`
+      `Você foi vinculado como: *${motorista.nome}*\n\n` +
+      `Agora você receberá notificações de novas solicitações!`
     );
 
     console.log(`✅ Técnico ${motorista.nome} vinculado ao chat ID ${chatId}`);
@@ -473,14 +473,14 @@ async function processarComando(chatId, texto) {
     await enviarMensagemTelegram(
       chatId,
       `🤖 *BOT DE SOLICITAÇÃO DE TRANSPORTE* 🤖\n\n` +
-        `*Comandos disponíveis:*\n` +
-        `/registrar - Vincular este chat ao seu usuário\n` +
-        `/solicitacoes - Listar minhas solicitações em aberto\n` +
-        `/ajuda - Mostrar esta ajuda\n\n` +
-        `*Para fechar uma solicitação:*\n` +
-        `Envie a descrição da finalização\n` +
-        `*Exemplo:*\n` +
-        `Ocorrência: Solicitante levado ao destino com sucesso!\n` 
+      `*Comandos disponíveis:*\n` +
+      `/registrar - Vincular este chat ao seu usuário\n` +
+      `/solicitacoes - Listar minhas solicitações em aberto\n` +
+      `/ajuda - Mostrar esta ajuda\n\n` +
+      `*Para fechar uma solicitação:*\n` +
+      `Envie a descrição da finalização\n` +
+      `*Exemplo:*\n` +
+      `Ocorrência: Solicitante levado ao destino com sucesso!\n`
     );
   } else if (comando === '/registrar') {
     await processarRegistro(chatId);
@@ -776,7 +776,7 @@ app.put('/api/solicitacao/:id/designar', async (req, res) => {
       `,
       [solicitacao.id]
     );
-        // Enviar notificação para o Telegram
+    // Enviar notificação para o Telegram
     if (solicitacaoCompleta.rows[0].motorista_id) {
       enviarParaTelegram(
         motorista_id,
@@ -855,7 +855,7 @@ app.get('/api/solicitacao', async (req, res) => {
 // Atualizar uma solicitação
 app.put('/api/solicitacao/:id', async (req, res) => {
   const { id } = req.params;
-  const { status, problema, solucao, motorista_id } = req.body;
+  const { status, problema, motorista_id } = req.body;
 
   try {
     let query = '';
@@ -863,12 +863,32 @@ app.put('/api/solicitacao/:id', async (req, res) => {
 
     if (status === 'fechado') {
       query =
-        'UPDATE solicitacoes SET status = $1, problema = $2, solucao = $3, data_fechamento = CURRENT_TIMESTAMP WHERE id = $4 RETURNING *';
-      values = [status, problema, solucao, id];
+        'UPDATE solicitacoes SET status = $1, problema = $2, data_fechamento = CURRENT_TIMESTAMP WHERE id = $3 RETURNING *';
+      values = [status, problema, id];
 
     } else if (status === 'redirecionado') {
 
-      // Primeiro, obter o técnico atual para salvar como anterior
+      // Primeiro, obter o técnico atual para salvar como anterior - antigo/28/05
+
+      // const solicitacaoAtual = await pool.query(
+      //   'SELECT motorista_id FROM solicitacoes WHERE id = $1',
+      //   [id]
+      // );
+
+      // const motoristaAnteriorId =
+      //   solicitacaoAtual.rows[0].motorista_id;
+
+      // query =
+      //   'UPDATE solicitacoes SET status = $1, motorista_anterior_id = $2, motorista_id = $3 WHERE id = $4 RETURNING *';
+
+      // values = [
+      //   'em_andamento',
+      //   motoristaAnteriorId,
+      //   motorista_id,
+      //   id
+      // ];
+
+      // Buscar motorista atual
       const solicitacaoAtual = await pool.query(
         'SELECT motorista_id FROM solicitacoes WHERE id = $1',
         [id]
@@ -877,8 +897,16 @@ app.put('/api/solicitacao/:id', async (req, res) => {
       const motoristaAnteriorId =
         solicitacaoAtual.rows[0].motorista_id;
 
-      query =
-        'UPDATE solicitacoes SET status = $1, motorista_anterior_id = $2, motorista_id = $3 WHERE id = $4 RETURNING *';
+      // Atualizar solicitação
+      query = `
+    UPDATE solicitacoes 
+    SET 
+      status = $1,
+      motorista_anterior_id = $2,
+      motorista_id = $3
+    WHERE id = $4
+    RETURNING *
+  `;
 
       values = [
         'em_andamento',
@@ -887,14 +915,46 @@ app.put('/api/solicitacao/:id', async (req, res) => {
         id
       ];
 
+
+
     } else {
       query =
         'UPDATE solicitacoes SET status = $1 WHERE id = $2 RETURNING *';
       values = [status, id];
     }
 
+    // const result = await pool.query(query, values);
+    // res.json(result.rows[0]); antigo/28/05
+
     const result = await pool.query(query, values);
-    res.json(result.rows[0]);
+
+    const solicitacaoAtualizada = result.rows[0];
+
+    // Se foi redirecionamento, enviar nova notificação
+    if (status === 'redirecionado') {
+
+      try {
+
+        await enviarParaTelegram(
+          motorista_id,
+          solicitacaoAtualizada
+        );
+
+        console.log(
+          `📤 Solicitação ${id} redirecionada e enviada ao novo motorista`
+        );
+
+      } catch (telegramError) {
+
+        console.error(
+          'Erro ao enviar Telegram após redirecionamento:',
+          telegramError
+        );
+
+      }
+    }
+
+    res.json(solicitacaoAtualizada);
 
   } catch (err) {
     console.error(err);
