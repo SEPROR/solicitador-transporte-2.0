@@ -111,7 +111,7 @@ let isPolling = false;
 // Função para enviar mensagens para o Telegram
 async function enviarParaTelegram(motoristaId, solicitacao) {
   try {
-    // Buscar o chatId do técnico no banco
+    // Buscar o chatId do motorista no banco
     const result = await pool.query(
       'SELECT telegram_chat_id, nome FROM motoristas WHERE id = $1',
       [motoristaId]
@@ -135,28 +135,27 @@ async function enviarParaTelegram(motoristaId, solicitacao) {
         ? setorResult.rows[0].nome
         : 'Setor não encontrado';
 
-    const mensagem = `🚨 *NOVA SOLICITAÇÃO DESIGNADA* 🚨
+    const mensagem = `🚗 *NOVA SOLICITAÇÃO DE TRANSPORTE* 🚗
 
 👤 *Solicitante:* ${solicitacao.usuario_nome}
 🏢 *Local:* ${setorNome}
-👨‍💻 *Motorista Designado:* ${result.rows[0].nome}
+👨‍✈️ *Motorista Designado:* ${result.rows[0].nome}
 🔢 *Número da Solicitação:* #${solicitacao.id}
 ⏰ *Data/Hora:* ${new Date(solicitacao.data_abertura).toLocaleString('pt-BR')}
 
 --------------------------------
 
-💡 *PARA FECHAR ESTA SOLICITAÇÃO:*
+💡 *PARA FINALIZAR O TRANSPORTE:*
 
 Envie uma mensagem com:
-Problema: [descrição do problema]
-Solução: [descrição da solução]
+
+Finalizado: Transporte concluído com sucesso
 
 *Exemplo:*
-Problema: Computador não ligava
-Solução: Troquei a fonte de alimentação`;
+Finalizado: Solicitante levado ao destino com sucesso`;
 
     console.log(
-      `📤 Enviando mensagem para chatId: ${chatId}, Técnico: ${result.rows[0].nome}`
+      `📤 Enviando mensagem para chatId: ${chatId}, Motorista: ${result.rows[0].nome}`
     );
 
     await axios.post(
@@ -168,14 +167,14 @@ Solução: Troquei a fonte de alimentação`;
       }
     );
 
-    // Marcar como aguardando solução
+    // Marcar como aguardando finalização
     await pool.query(
       'UPDATE solicitacoes SET aguardando_solucao = TRUE WHERE id = $1',
       [solicitacao.id]
     );
 
     console.log(
-      `✅ Notificação enviada e solicitação #${solicitacao.id} marcada como aguardando solução`
+      `✅ Notificação enviada e solicitação #${solicitacao.id} marcada como aguardando finalização`
     );
 
   } catch (error) {
@@ -233,7 +232,6 @@ async function checkTelegramMessages() {
 async function processTelegramMessage(message) {
   const chatId = message.chat.id;
   const text = message.text ? message.text.trim() : '';
-  const messageId = message.message_id;
 
   console.log(`💬 Mensagem de ${chatId}: "${text}"`);
 
@@ -244,7 +242,7 @@ async function processTelegramMessage(message) {
       return;
     }
 
-    // Buscar técnico pelo chat_id
+    // Buscar motorista pelo chat_id
     const motoristaResult = await pool.query(
       'SELECT id, nome FROM motoristas WHERE telegram_chat_id = $1',
       [chatId.toString()]
@@ -252,16 +250,18 @@ async function processTelegramMessage(message) {
 
     if (motoristaResult.rows.length === 0) {
       console.log(`⚠️ Chat ID ${chatId} não está associado a nenhum motorista`);
+
       await enviarMensagemTelegram(
         chatId,
         '❌ Você não está registrado como motorista. Use /registrar para se cadastrar.'
       );
+
       return;
     }
 
     const motorista = motoristaResult.rows[0];
 
-    // Buscar solicitações pendentes do técnico
+    // Buscar solicitações pendentes do motorista
     const solicitacoesPendentes = await pool.query(
       `SELECT * FROM solicitacoes 
        WHERE motorista_id = $1 
@@ -275,16 +275,23 @@ async function processTelegramMessage(message) {
     if (solicitacoesPendentes.rows.length === 0) {
       await enviarMensagemTelegram(
         chatId,
-        '📋 Você não possui solicitações pendentes para fechar.'
+        '📋 Você não possui transportes pendentes para finalizar.'
       );
+
       return;
     }
 
     const solicitacao = solicitacoesPendentes.rows[0];
-    await processarRespostaSolicitacao(solicitacao.id, text, chatId);
+
+    await processarRespostaSolicitacao(
+      solicitacao.id,
+      text,
+      chatId
+    );
 
   } catch (error) {
     console.error('❌ Erro ao processar mensagem:', error);
+
     await enviarMensagemTelegram(
       chatId,
       '❌ Erro ao processar sua mensagem. Tente novamente.'
@@ -293,109 +300,65 @@ async function processTelegramMessage(message) {
 }
 
 // Função para processar resposta de solicitação
-async function processarRespostaSolicitacao(solicitacaoId, texto, chatId) {
+async function processarRespostaSolicitacao(
+  solicitacaoId,
+  texto,
+  chatId
+) {
   try {
     console.log(
       `🔧 Processando resposta para solicitação #${solicitacaoId}: "${texto}"`
     );
 
-    // Converter para minúsculas para facilitar o parsing
-    const textoLower = texto.toLowerCase();
+    // Texto enviado pelo motorista
+    let finalizado = texto.trim();
 
-    let problema = '';
-    let solucao = '';
-
-    // Método 1: Buscar por marcadores explícitos
-    if (textoLower.includes('problema') || textoLower.includes('solução')) {
-      const linhas = texto.split('\n');
-      let emProblema = false;
-      let emSolucao = false;
-
-      for (const linha of linhas) {
-        const linhaLimpa = linha.trim();
-        const linhaLower = linhaLimpa.toLowerCase();
-
-        if (linhaLower.startsWith('problema')) {
-          emProblema = true;
-          emSolucao = false;
-          problema += linhaLimpa.replace(/^problema:?\s*/i, '').trim() + '\n';
-        } else if (
-          linhaLower.startsWith('solução') ||
-          linhaLower.startsWith('solucao')
-        ) {
-          emProblema = false;
-          emSolucao = true;
-          solucao +=
-            linhaLimpa.replace(/^(solução|solucao):?\s*/i, '').trim() + '\n';
-        } else if (emProblema) {
-          problema += linhaLimpa + '\n';
-        } else if (emSolucao) {
-          solucao += linhaLimpa + '\n';
-        }
-      }
+    // Caso envie no formato "Finalizado: ..."
+    if (texto.toLowerCase().startsWith('finalizado')) {
+      finalizado = texto.replace(/^finalizado:?\s*/i, '').trim();
     }
 
-        // Método 2: Se não encontrou marcadores, tentar dividir por linhas
-    if (!problema.trim() && !solucao.trim()) {
-      console.log('⚠️ Usando método alternativo de parsing');
-
-      const linhas = texto
-        .split('\n')
-        .filter((linha) => linha.trim().length > 0);
-
-      if (linhas.length >= 2) {
-        problema = linhas[0].replace(/^[-•]\s*/, '').trim();
-        solucao = linhas[1].replace(/^[-•]\s*/, '').trim();
-      } else if (linhas.length === 1) {
-        solucao = linhas[0].trim();
-        problema = 'Problema não especificado';
-      }
+    // Caso não envie nada
+    if (!finalizado) {
+      finalizado = 'Transporte finalizado com sucesso';
     }
 
-    // Limpar e validar
-    problema = problema.trim() || 'Problema não especificado';
-    solucao = solucao.trim();
-
-    if (!solucao) {
-      throw new Error('Solução não fornecida');
-    }
-
-    console.log(`📝 Problema extraído: "${problema}"`);
-    console.log(`✅ Solução extraída: "${solucao}"`);
+    console.log(`✅ Finalização registrada: "${finalizado}"`);
 
     // Fechar a solicitação
     await pool.query(
-      'UPDATE solicitacoes SET status = $1, problema = $2, solucao = $3, data_fechamento = CURRENT_TIMESTAMP, aguardando_solucao = FALSE WHERE id = $4',
-      ['fechado', problema, solucao, solicitacaoId]
+      `UPDATE solicitacoes 
+       SET status = $1,
+           problema = $2,
+           data_fechamento = CURRENT_TIMESTAMP,
+           aguardando_solucao = FALSE
+       WHERE id = $3`,
+      ['fechado', finalizado, solicitacaoId]
     );
 
     // Enviar confirmação
     await enviarMensagemTelegram(
       chatId,
-      `✅ *SOLICITAÇÃO FECHADA COM SUCESSO!* ✅\n\n` +
-        `*Solicitação:* #${solicitacaoId}\n` +
-        `*Problema:* ${problema}\n` +
-        `*Solução:* ${solucao}\n\n` +
-        `A solicitação foi registrada como concluída.`
+      `✅ *TRANSPORTE FINALIZADO COM SUCESSO!* ✅
+
+*Solicitação:* #${solicitacaoId}
+*Status:* ${finalizado}
+
+O solicitante foi levado ao destino informado.`
     );
 
     console.log(
-      `✅ Solicitação ${solicitacaoId} fechada via Telegram`
+      `✅ Solicitação ${solicitacaoId} finalizada via Telegram`
     );
 
   } catch (error) {
     console.error('❌ Erro ao processar resposta:', error);
+
     await enviarMensagemTelegram(
       chatId,
-      '❌ *ERRO AO PROCESSAR RESPOSTA*\n\n' +
-        'Formato incorreto. Use:\n\n' +
-        '```\n' +
-        'Problema: [descrição do problema]\n' +
-        'Solução: [solução aplicada]\n' +
-        '```\n\n' +
-        '*Exemplo:*\n' +
-        'Problema: Computador não ligava\n' +
-        'Solução: Troquei a fonte de alimentação'
+      '❌ *ERRO AO FINALIZAR TRANSPORTE*\n\n' +
+      'Envie no formato:\n\n' +
+      'Finalizado: Transporte concluído com sucesso'
     );
   }
 }
@@ -515,10 +478,9 @@ async function processarComando(chatId, texto) {
         `/solicitacoes - Listar minhas solicitações em aberto\n` +
         `/ajuda - Mostrar esta ajuda\n\n` +
         `*Para fechar uma solicitação:*\n` +
-        `Envie a descrição do problema e solução\n` +
+        `Envie a descrição da finalização\n` +
         `*Exemplo:*\n` +
-        `Problema: Computador não ligava\n` +
-        `Solução: Troquei a fonte de alimentação`
+        `Ocorrência: Solicitante levado ao destino com sucesso!\n` 
     );
   } else if (comando === '/registrar') {
     await processarRegistro(chatId);

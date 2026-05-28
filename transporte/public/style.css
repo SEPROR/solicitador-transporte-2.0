@@ -190,7 +190,7 @@ button[type="submit"]::before {
     color: white;
 }
 
-.detalhes-solucao {
+.detalhes-ocorrencia {
     background-color: #f9f9f9;
     padding: 10px;
     border-radius: 4px;
@@ -482,7 +482,7 @@ button[type="submit"]::before {
     padding: 0 40px;
     display: flex;
     align-items: center;
-    gap: 40px; /* ← controla distância entre left, center e right */
+    gap: 40px; 
     justify-content: flex-start; /* ← agrupa para a esquerda */
 
 }
@@ -494,7 +494,7 @@ button[type="submit"]::before {
 }
 
 .gov-logo-img {
-    height: 75px; /* Altura ideal para o conjunto brasão + texto do logo oficial */
+    height: 70px; /* Altura ideal para o conjunto brasão + texto do logo oficial */
     width: auto;
     display: block;
 }
@@ -590,7 +590,7 @@ button[type="submit"]::before {
 
 
 .sepror-logo-img {
-    height: 50px; /* Ajuste sutil para equilibrar visualmente com o logo esquerdo */
+    height: 60px; /* Ajuste sutil para equilibrar visualmente com o logo esquerdo */
     width: auto;
     display: block;
 }
