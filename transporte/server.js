@@ -186,20 +186,32 @@ Finalizado: Solicitante levado ao destino com sucesso`;
 }
 
 // Função auxiliar para enviar mensagens
-async function enviarMensagemTelegram(chatId, texto) {
+async function enviarMensagemTelegram(chatId, texto, parseMode = null) {
   try {
+    const payload = {
+      chat_id: chatId,
+      text: texto,
+    };
+    if (parseMode) payload.parse_mode = parseMode;
+
     await axios.post(
       `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`,
-      {
-        chat_id: chatId,
-        text: texto,
-        parse_mode: 'Markdown'
-      }
+      payload
     );
   } catch (error) {
-    console.error('Erro ao enviar mensagem:', error);
+    console.error('❌ Erro ao enviar mensagem:', error.response?.data || error.message);
   }
 }
+
+// async function checkTelegramMessages() {
+//   if (isPolling) return;
+//         text: texto,
+//       }
+//     );
+//   } catch (error) {
+//     console.error('❌ Erro ao enviar mensagem:', error.response?.data || error.message);
+//   }
+// }
 
 async function checkTelegramMessages() {
   if (isPolling) return;
@@ -339,24 +351,24 @@ async function processarRespostaSolicitacao(
     // Enviar confirmação
     await enviarMensagemTelegram(
       chatId,
-      `✅ *TRANSPORTE FINALIZADO COM SUCESSO!* ✅
-
-*Solicitação:* #${solicitacaoId}
-*Status:* ${finalizado}
-
-O solicitante foi levado ao destino informado.`
+      `✅ TRANSPORTE FINALIZADO COM SUCESSO!\n\n` +
+      `Solicitação: #${solicitacaoId}\n` +
+      `Status: ${finalizado}\n\n` +
+      `O solicitante foi levado ao destino informado.`
     );
-
-    console.log(
-      `✅ Solicitação ${solicitacaoId} finalizada via Telegram`
-    );
-
+ 
+    console.log(`✅ Solicitação #${solicitacaoId} finalizada via Telegram`);
+ 
   } catch (error) {
-    console.error('❌ Erro ao processar resposta:', error);
-
+    // Log completo com stack trace — essencial para identificar
+    // se o erro é de banco (coluna inexistente, constraint, etc.)
+    // ou de API do Telegram
+    console.error('❌ Erro ao processar resposta:', error.message);
+    console.error(error.stack);
+ 
     await enviarMensagemTelegram(
       chatId,
-      '❌ *ERRO AO FINALIZAR TRANSPORTE*\n\n' +
+      '❌ ERRO AO FINALIZAR TRANSPORTE\n\n' +
       'Envie no formato:\n\n' +
       'Finalizado: Transporte concluído com sucesso'
     );
