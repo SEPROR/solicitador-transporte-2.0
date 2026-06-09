@@ -1308,7 +1308,7 @@ app.get('/api/test-telegram', async (req, res) => {
 setInterval(checkTelegramMessages, 3000);
 
 // Iniciar servidor
-app.listen(port, 'localhost', () => {
+app.listen(port, '0.0.0.0', () => {
   console.log(
     `🚀 Servidor rodando: http://localhost:${port}`
   );
