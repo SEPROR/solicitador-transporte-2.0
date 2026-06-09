@@ -9,7 +9,7 @@ require('dotenv').config({ path: path.join(__dirname, '../.env') });
 
 const app = express();
 const port = process.env.PORT || 2999;
-const host = process.env.HOST || 'localhost';
+const host = process.env.HOST || '0.0.0.0';
 
 // Middleware
 app.use(bodyParser.json());
@@ -141,7 +141,7 @@ async function enviarParaTelegram(motoristaId, solicitacao) {
 🏢 *Local:* ${setorNome}
 👨‍✈️ *Motorista Designado:* ${result.rows[0].nome}
 🔢 *Número da Solicitação:* #${solicitacao.id}
-⏰ *Data/Hora:* ${new Date(solicitacao.data_abertura).toLocaleString('pt-BR')}
+⏰ *Data/Hora da partida:* ${new Date(solicitacao.data).toLocaleDateString('pt-BR', { timeZone: 'America/Manaus' })} *ás* ${solicitacao.hora}
 
 --------------------------------
 
