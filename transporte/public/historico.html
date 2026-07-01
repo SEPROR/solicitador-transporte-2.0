@@ -1,0 +1,560 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/svg+xml" href="./images/logo.png" />
+    <title>Histórico de Solicitações — Secretaria de Produção Rural</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="style.css">
+
+    <!-- HEADER E FOOTER -->
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            fetch("header.html")
+                .then(response => response.text())
+                .then(data => {
+                    document.getElementById("header-placeholder").innerHTML = data;
+                })
+                .catch(error => console.error("Erro ao carregar o header:", error));
+
+            fetch('footer.html')
+                .then(res => res.text())
+                .then(html => {
+                    document.getElementById('footer-placeholder').innerHTML = html;
+                });
+        });        
+    </script>
+
+</head>
+
+<body>
+
+    <div id="header-placeholder"></div>
+
+    <main>
+
+        <!-- Título -->
+        <div class="page-title-row">
+            <div>
+                <h1>Histórico de Solicitações</h1>
+                <p>Registros encerrados de gerenciamento de transporte</p>
+            </div>
+            <button class="btn btn-primary" onclick="gerarPDF()">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                    stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                    <polyline points="14 2 14 8 20 8" />
+                    <line x1="16" y1="13" x2="8" y2="13" />
+                    <line x1="16" y1="17" x2="8" y2="17" />
+                </svg>
+                Gerar Relatório PDF
+            </button>
+        </div>
+
+        <!-- Stats -->
+        <div class="stats-grid" id="statsGrid"></div>
+
+        <!-- Filtros -->
+        <div class="card">
+            <div class="filters-header">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="2.5"
+                    stroke-linecap="round" stroke-linejoin="round">
+                    <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3" />
+                </svg>
+                <span class="filters-header-label">Filtros</span>
+                <button class="btn-ghost" id="btnClear" onclick="limparFiltros()"
+                    style="margin-left:auto;display:none;">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                        stroke-linecap="round" stroke-linejoin="round" style="margin-right:4px">
+                        <line x1="18" y1="6" x2="6" y2="18" />
+                        <line x1="6" y1="6" x2="18" y2="18" />
+                    </svg>
+                    Limpar filtros
+                </button>
+            </div>
+            <div class="filters-grid">
+                <div class="filter-field">
+                    <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="11" cy="11" r="8" />
+                        <line x1="21" y1="21" x2="16.65" y2="16.65" />
+                    </svg>
+                    <input type="text" id="fBusca" placeholder="Buscar solicitação..." oninput="aplicarFiltros()" />
+                </div>
+                <div class="filter-field">
+                    <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+                        <circle cx="12" cy="7" r="4" />
+                    </svg>
+                    <select id="fMotorista" onchange="aplicarFiltros()">
+                        <option>Todos os Motoristas</option>
+                    </select>
+                    <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <polyline points="6 9 12 15 18 9" />
+                    </svg>
+                </div>
+
+                <div class="filter-field">
+                    <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <polyline points="20 6 9 17 4 12" />
+                    </svg>
+                    <select id="fStatus" onchange="aplicarFiltros()">
+                        <option>Todos os Status</option>
+                        <option>Fechadas</option>
+                        <option>Em andamento</option>
+                        <option>Abertas</option>
+                    </select>
+                    <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <polyline points="6 9 12 15 18 9" />
+                    </svg>
+                </div>
+
+                <div class="filter-field">
+                    <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+                        <line x1="16" y1="2" x2="16" y2="6" />
+                        <line x1="8" y1="2" x2="8" y2="6" />
+                        <line x1="3" y1="10" x2="21" y2="10" />
+                    </svg>
+                    <select id="fPeriodo" onchange="aplicarFiltros()">
+                        <option>Todos os Períodos</option>
+                    </select>
+                    <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <polyline points="6 9 12 15 18 9" />
+                    </svg>
+                </div>
+            </div>
+            <div class="chips-row" id="chipsRow" style="display:none;"></div>
+        </div>
+
+        <!-- Tabela -->
+        <div class="card">
+            <div class="table-header-row">
+                <span class="table-count" id="tableCount"></span>
+                <button class="print-link" onclick="gerarPDF()">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <polyline points="6 9 6 2 18 2 18 9" />
+                        <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2" />
+                        <rect x="6" y="14" width="12" height="8" />
+                    </svg>
+                    Imprimir / PDF
+                </button>
+            </div>
+            <div style="overflow-x:auto;">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Solicitante</th>
+                            <th>Setor</th>
+                            <th>Destino</th>
+                            <th>Motorista</th>
+                            <th>Data de Saída</th>
+                            <th>Encerrada em</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tableBody"></tbody>
+                </table>
+
+             </div>
+            <div class="mobile-cards" id="mobileCards"></div>
+            <div class="empty-state" id="loadingState" style="display:none;">Carregando histórico de solicitações...</div>
+            <div class="empty-state" id="errorState" style="display:none;">
+                Não foi possível carregar o histórico. Verifique a conexão com o servidor.
+                <br /><br />
+                <button class="btn btn-outline" onclick="carregarDados()">Tentar novamente</button>
+            </div>
+            <div class="empty-state" id="emptyState" style="display:none;">Nenhuma solicitação encontrada para os
+                filtros selecionados.</div>
+            <div class="pagination" id="paginationRow">
+                <span class="pagination-info" id="paginationInfo"></span>
+                <div class="pagination-controls" id="paginationControls"></div>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- MODAL -->
+    <div class="modal-overlay" id="modalOverlay" onclick="fecharModal(event)">
+        <div class="modal">
+
+            <div class="modal-head">
+                <div>
+                    <div class="overline" id="modalOverline"></div>
+                    <h2 id="modalTitle"></h2>
+                </div>
+
+                <button class="modal-close" onclick="fecharModalBtn()">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="18" y1="6" x2="6" y2="18" />
+                        <line x1="6" y1="6" x2="18" y2="18" />
+                    </svg>
+                </button>
+            </div>
+
+            <div class="modal-body">
+                <div id="modalBadge"></div>
+                <div class="modal-grid" id="modalGrid"></div>
+                <div class="km-box" id="modalOcorrencia" style="display:none;">
+                    <svg class="km-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                        stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                        <polyline points="14 2 14 8 20 8" />
+                        <line x1="16" y1="13" x2="8" y2="13" />
+                        <line x1="16" y1="17" x2="8" y2="17" />
+                    </svg>
+
+                    <div>
+                        <div class="km-label">Ocorrência / Observações</div>
+                        <div class="km-value" id="modalOcorrenciaVal" style="font-size:14px;"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="modal-footer">
+                <button class="btn btn-outline" onclick="gerarPDFModal()">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                        <polyline points="7 10 12 15 17 10" />
+                        <line x1="12" y1="15" x2="12" y2="3" />
+                    </svg>
+                    Exportar PDF
+                </button>
+                <button class="btn btn-primary" onclick="fecharModalBtn()">Fechar</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="footer-placeholder"></div>
+
+    <script>
+
+        const PAGE_SIZE = 6;
+        let paginaAtual = 1;
+        let DADOS = [];
+        let filtrados = [];
+        let detalheAtual = null;
+
+        const MESES = ["Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho", "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro" ];
+
+        function badge(status) {
+            const cls = status === "fechado" ? "badge-green" : status === "em_andamento" ? "badge-blue" : status === "aberto" ? "badge-yellow" : "badge-amber";
+            return `<span class="badge ${cls}">${status}</span>`;
+        }
+        function initials(n) { 
+            if (!n) return "";
+            return n.split(" ").slice(0, 2).map(x => x[0]).join("").toUpperCase(); }
+
+        //  ============================
+        //  carregando dados do server.js
+        //  ============================
+
+        async function carregarDados() {
+            mostrarEstado("loading");
+            try {
+                const response = await fetch('/api/solicitacao');
+                if (!response.ok) throw new Error('Falha ao buscar solicitações');
+                const todas = await response.json();
+
+            //solicitações fechadas
+            DADOS = todas
+                .filter(s => s.status === "fechado")
+                .map(mapearSolicitacao)
+                .sort((a, b) => new Date(b.fechadaEmRaw || 0) - new Date(a.fechadaEmRaw || 0));
+            
+            filtrados = [...DADOS];
+            paginaAtual = 1;
+
+            await preencherFiltroMotoristas();
+            preencherFiltroPeriodos();
+
+            mostrarEstado("ok");
+            renderStats();
+            renderChips();
+            renderTable();
+            } catch (error) {
+                console.error("Erro ao carregar histórico:", error);
+                mostrarEstado("error");
+            }
+        }
+
+        function mapearSolicitacao(s) {
+            return {
+                id: s.id,
+                solicitante: s.usuario_nome || "—",
+                setor: s.setor_nome || "—",
+                destino: s.destino || "—",
+                motorista: s.motorista_nome || "—",
+                dataPartida: s.data ? new Date(s.data).toLocaleDateString('pt-BR', { timeZone: 'America/Manaus' }) : "—",
+                horaPartida: s.hora || "—",
+                abertaEm: s.data_abertura ? new Date(s.data_abertura).toLocaleString('pt-BR') : "—",
+                fechadaEm: s.data_fechamento ? new Date(s.data_fechamento).toLocaleString('pt-BR') : "—",
+                fechadaEmRaw: s.data_fechamento,
+                dataPartidaRaw: s.data,
+                status: "fechado", 
+                ocorrencia: s.problema || "Não informado",
+                motoristaAnterior: s.motorista_anterior_nome || null,
+            };
+        }
+            
+
+        function mostrarEstado(estado) {
+            document.getElementById("loadingState").style.display = estado === "loading" ? "" : "none";
+            document.getElementById("errorState").style.display = estado === "error" ? "" : "none";
+            const mostrarConteudo = estado === "ok";
+            document.querySelector("table").style.display = mostrarConteudo ? "" : "none";
+            document.getElementById("mobileCards").style.display = mostrarConteudo ? "" : "none";
+            document.getElementById("paginationRow").style.display = mostrarConteudo ? "" : "none";
+            if (!mostrarConteudo) document.getElementById("emptyState").style.display = "none";
+        }
+
+        async function preencherFiltroMotoristas() {
+            const select = document.getElementById("fMotorista");
+            const valorAtual = select.value;
+            select.innerHTML = `<option>Todos os Motoristas</option>`;
+            try {
+                const response = await fetch('/api/motoristas');
+                const motoristas = await response.json();
+                motoristas.forEach(m => {
+                    const opt = document.createElement("option");
+                    opt.textContent = m.nome;
+                    select.appendChild(opt);
+                });
+            } catch (error) {
+                // Se a lista de motoristas falhar, usa os nomes já presentes no histórico
+                [...new Set(DADOS.map(d => d.motorista).filter(m => m && m !== "—"))].forEach(nome => {
+                    const opt = document.createElement("option");
+                    opt.textContent = nome;
+                    select.appendChild(opt);
+                });
+            }
+            if ([...select.options].some(o => o.value === valorAtual)) select.value = valorAtual;
+        }
+
+        function preencherFiltroPeriodos() {
+            const select = document.getElementById("fPeriodo");
+            const valorAtual = select.value;
+            const periodos = new Map();
+            DADOS.forEach(d => {
+                if (!d.dataPartidaRaw) return;
+                const [ano, mes] = d.dataPartidaRaw.substring(0, 7).split("-");
+                const chave = `${mes}/${ano}`;
+                if (!periodos.has(chave)) periodos.set(chave, `${MESES[parseInt(mes, 10) - 1]} ${ano}`);
+            });
+            const ordenados = [...periodos.entries()].sort((a, b) => {
+                const [ma, aa] = a[0].split("/"); const [mb, ab] = b[0].split("/");
+                return new Date(ab, mb) - new Date(aa, ma);
+            });
+            select.innerHTML = `<option>Todos os Períodos</option>` +
+                ordenados.map(([chave, label]) => `<option value="${chave}">${label}</option>`).join("");
+            if ([...select.options].some(o => o.value === valorAtual)) select.value = valorAtual;
+        }
+
+        function renderStats() {
+            const motoristasUnicos = new Set(filtrados.map(s => s.motorista).filter(m => m && m !== "—")).size;
+            const setoresUnicos = new Set(filtrados.map(s => s.setor).filter(s => s && s !== "—")).size;
+            const items = [
+                { label: "Filtradas", value: filtrados.length, sub: `de ${DADOS.length} total`, color: "blue" },
+                { label: "fechado", value: filtrados.length, sub: "100% do filtro atual", color: "green" },
+                { label: "Motoristas Envolvidos", value: motoristasUnicos, sub: "no filtro atual", color: "amber" },
+                { label: "Setores Atendidos", value: setoresUnicos, sub: "no filtro atual", color: "red" },
+            ];
+            document.getElementById("statsGrid").innerHTML = items.map(it => `
+    <div class="stat-card">
+      <div class="stat-value ${it.color}">${it.value}</div>
+      <div class="stat-label">${it.label}</div>
+      <div class="stat-sub">${it.sub}</div>
+    </div>`).join("");
+        }
+
+        function renderChips() {
+            const mot = document.getElementById("fMotorista").value;
+            const sta = document.getElementById("fStatus").value;
+            const per = document.getElementById("fPeriodo").value;
+            const busca = document.getElementById("fBusca").value;
+            
+            const chips = [];
+            if (mot !== "Todos os Motoristas") chips.push({ label: mot, key: "fMotorista", def: "Todos os Motoristas" });
+            if (sta !== "Todos os Status") chips.push({ label: sta, key: "fStatus", def: "Todos os Status" });
+            if (per !== "Todos os Períodos") {
+                const label = document.querySelector(`#fPeriodo option[value="${per}"]`)?.textContent || per;
+                chips.push({ label, key: "fPeriodo", def: "Todos os Períodos" });
+            }
+
+            const ativo = chips.length > 0 || busca;
+            document.getElementById("btnClear").style.display = ativo ? "" : "none";
+            const row = document.getElementById("chipsRow");
+            if (chips.length === 0) { row.style.display = "none"; return; }
+            row.style.display = "flex";
+            row.innerHTML = chips.map((c, i) => `
+        <span class="chip">${c.label}
+     <button onclick="clearChip('${c.key}','${c.def}')">
+        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+     </button>
+    </span>`).join("");
+        }
+
+        function clearChip(key, def) { document.getElementById(key).value = def; aplicarFiltros(); }
+
+        function renderTable() {
+            const total = filtrados.length;
+            const totPag = Math.max(1, Math.ceil(total / PAGE_SIZE));
+            paginaAtual = Math.min(paginaAtual, totPag);
+            const slice = filtrados.slice((paginaAtual - 1) * PAGE_SIZE, paginaAtual * PAGE_SIZE);
+            document.getElementById("tableCount").textContent = `${total} registro${total !== 1 ? "s" : ""} encontrado${total !== 1 ? "s" : ""}`;
+            document.getElementById("emptyState").style.display = total === 0 ? "" : "none";
+
+            document.getElementById("tableBody").innerHTML = slice.map((s, i) => `
+
+      <tr onclick="abrirModal(${s.id})" style="${i % 2 !== 0 ? "background:#fbfcfd" : ""}">
+         <td class="td-id">#${s.id}</td>
+         <td style="font-weight:500">${s.solicitante}</td>
+         <td class="td-muted">${s.setor}</td>
+         <td class="td-muted td-trunc" title="${s.destino}">${s.destino}</td>
+         <td><div class="avatar-cell"><div class="avatar">${initials(s.motorista)}</div>${s.motorista}</div></td>
+         <td class="td-muted" style="white-space:nowrap">${s.dataPartida} ${s.horaPartida}</td>
+         <td class="td-muted" style="white-space:nowrap">${s.fechadaEm}</td>
+         <td>${badge(s.status)}</td>
+      </tr>`).join("");
+
+            document.getElementById("mobileCards").innerHTML = slice.map(s => `
+           <div class="mobile-card" onclick="abrirModal(${s.id})">
+           <div class="mobile-card-row">
+        <div>
+           <div class="mobile-card-id">#${s.id}</div>
+           <div class="mobile-card-name">${s.solicitante}
+        </div>
+           ${badge(s.status)}
+        </div>
+
+           <div class="mobile-card-meta">
+            <strong>Destino:</strong> ${s.destino}<br/>
+            <strong>Motorista:</strong> ${s.motorista}<br/>
+            <strong>Saída:</strong> ${s.dataPartida} às ${s.horaPartida}
+        </div>
+        </div>`).join("");
+
+            // Paginação
+            const info = document.getElementById("paginationInfo");
+            const ctrl = document.getElementById("paginationControls");
+            if (total > 0) info.textContent = `Mostrando ${(paginaAtual - 1) * PAGE_SIZE + 1}–${Math.min(paginaAtual * PAGE_SIZE, total)} de ${total}`;
+            else info.textContent = "";
+            if (totPag <= 1) { ctrl.innerHTML = ""; return; }
+            let html = `<button class="btn-icon" onclick="irPagina(${paginaAtual - 1})" ${paginaAtual === 1 ? "disabled" : ""}>
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg></button>`;
+            for (let n = 1; n <= totPag; n++) html += `<button class="page-btn ${n === paginaAtual ? "active" : ""}" onclick="irPagina(${n})">${n}</button>`;
+            html += `<button class="btn-icon" onclick="irPagina(${paginaAtual + 1})" ${paginaAtual === totPag ? "disabled" : ""}>
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></button>`;
+            ctrl.innerHTML = html;
+        }
+
+        function irPagina(n) { paginaAtual = n; renderTable(); }
+
+        function aplicarFiltros() {
+            const busca = document.getElementById("fBusca").value.toLowerCase();
+            const mot = document.getElementById("fMotorista").value;
+            const sta = document.getElementById("fStatus").value;
+            const per = document.getElementById("fPeriodo").value;
+
+            filtrados = DADOS.filter(s => {
+                if (mot !== "Todos os Motoristas" && s.motorista !== mot) return false;
+                if (sta !== "Todos os Status" && s.status !== sta) return false;
+                if (per !== "Todos os Períodos")
+                {const chave = s.dataPartidaRaw ? s.dataPartidaRaw.substring(0,7).split("-").reverse().join("/") : "";
+                    if(chave !== per) return false;
+                } 
+                if (busca && !`${s.solicitante} ${s.destino} ${s.setor} #${s.id}`.toLowerCase().includes(busca)) return false;
+                return true;
+            });
+            paginaAtual = 1;
+            renderStats(); renderChips(); renderTable();
+        }
+        function limparFiltros() {
+            document.getElementById("fBusca").value = "";
+            document.getElementById("fMotorista").value = "Todos os Motoristas";
+            document.getElementById("fStatus").value = "Todos os Status";
+            document.getElementById("fPeriodo").value = "Todos os Períodos";
+            aplicarFiltros();
+        }
+
+        function abrirModal(id) {
+            const s = DADOS.find(d => d.id === id); if (!s) return;
+            detalheAtual = s;
+            document.getElementById("modalOverline").textContent = `Solicitação #${s.id}`;
+            document.getElementById("modalTitle").textContent =s.solicitante;            
+            document.getElementById("modalBadge").innerHTML = badge(s.status);
+
+            const campos =
+            [["Solicitante", s.solicitante], 
+            ["Setor", s.setor], 
+            ["Destino", s.destino], 
+            ["Motorista", s.motorista], 
+            ["Data de Saída", s.dataPartida], 
+            ["Hora de Saída", s.horaPartida], 
+            ["Aberta em", s.abertaEm], 
+            ["Encerrada em", s.fechadaEm]
+        
+        ];
+        if (s.motoristaAnterior) campos.push(["Redirencionada de", s.motoristaAnterior]);
+
+        document.getElementById("modalGrid").innerHTML = campos.map(c => `
+            <div class="modal-field">
+                <div class="modal-field-label">${c[0]}</div>
+                <div class="modal-field-value">${c[1]}</div>
+            </div>
+        `).join("");
+
+        const ocorrenciaBox = document.getElementById("modalOcorrencia");
+        ocorrenciaBox.style.display = "";
+        document.getElementById("modalOcorrenciaVal").textContent = s.ocorrencia;
+
+        document.getElementById("modalOverlay").classList.add("open");
+        document.body.style.overflow = "hidden";
+      }
+
+        function fecharModal(e) { if (e.target === document.getElementById("modalOverlay")) fecharModalBtn(); }
+        function fecharModalBtn() { document.getElementById("modalOverlay").classList.remove("open"); document.body.style.overflow = ""; }
+
+        function gerarPDF(lista) {
+            lista = lista || filtrados;
+            const mot = document.getElementById("fMotorista").value;
+            const sta = document.getElementById("fStatus").value;
+            const per = document.getElementById("fPeriodo").value;
+            const fec = lista.filter(s => s.status === "fechado").length;
+            const linhas = lista.map(s => `<tr>
+    <td>#${s.id}</td><td>${s.solicitante}</td><td>${s.setor}</td><td>${s.destino}</td><td>${s.motorista}</td>
+    <td style="white-space:nowrap">${s.dataPartida} ${s.horaPartida}</td>
+    <td style="white-space:nowrap">${s.fechadaEm}</td>
+    <td><span style="padding:2px 8px;border-radius:9999px;font-size:11px;font-weight:600;background:#d1fae5;color:#065f46">${s.status}</span></td></tr>`).join("");
+            const html = `<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8"><title>Relatório</title>
+<style>body{font-family:Arial,sans-serif;font-size:12px;color:#1a2332;margin:0;padding:24px}.hdr{display:flex;justify-content:space-between;border-bottom:2px solid #2196a6;padding-bottom:12px;margin-bottom:18px}.hdr h1{font-size:17px;margin:4px 0 0;color:#2196a6}.hdr .org{font-size:10px;color:#6b7a8d;text-align:right}.fbox{background:#f0f9ff;border:1px solid #bae6fd;border-radius:6px;padding:9px 13px;margin-bottom:16px;font-size:11px;color:#0c4a6e}.fbox span{margin-right:16px}table{width:100%;border-collapse:collapse}th{background:#2196a6;color:#fff;text-align:left;padding:6px 8px;font-size:10px;text-transform:uppercase;letter-spacing:.05em}td{padding:5px 8px;border-bottom:1px solid #e2e8f0;font-size:11px}tr:nth-child(even) td{background:#f8fafc}.foot{margin-top:20px;font-size:10px;color:#9ca3af;border-top:1px solid #e5e7eb;padding-top:9px}.totals{font-weight:bold;margin-bottom:4px}@media print{body{padding:0}}</style></head><body>
+<div class="hdr"><div><div style="font-size:10px;color:#6b7a8d">GOVERNO DO ESTADO DO AMAZONAS</div><h1>Relatório de Histórico de Solicitações de Transporte</h1></div><div class="org">Secretaria de Produção Rural<br/>Gerado em: ${new Date().toLocaleString("pt-BR")}</div></div>
+<div class="fbox"><strong>Filtros aplicados:</strong><span>Motorista: ${mot}</span><span>Status: ${sta}</span><span>Período: ${per}</span><span>Total: ${lista.length} registro(s)</span></div>
+<table><thead><tr><th>#</th><th>Solicitante</th><th>Setor</th><th>Destino</th><th>Motorista</th><th>Saída</th><th>Encerrada em</th><th>Status</th></tr></thead><tbody>${linhas}</tbody></table>
+<div class="foot"><div class="totals">Fechadas: ${fec}</div>Secretaria de Produção Rural — Sistema de Gerenciamento de Transporte</div>
+</body></html>`;
+            const w = window.open("", "_blank");
+            if (!w) { alert("Habilite pop-ups para gerar o PDF."); return; }
+            w.document.write(html); w.document.close(); w.focus();
+            setTimeout(() => w.print(), 400);
+        }
+        function gerarPDFModal() { if (detalheAtual) gerarPDF([detalheAtual]); }
+
+        // Init
+        document.addEventListener("DOMContentLoaded", carregarDados);
+    </script>
+</body>
+
+</html>

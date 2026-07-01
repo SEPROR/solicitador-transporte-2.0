@@ -44,6 +44,7 @@ function verificarAutenticacao(req, res, next) {
     '/api/motoristas',
     '/api/setores',
     '/api/solicitacao',
+    '/historico.html',
     '/login.html',
     '/index.html',
     '/',
@@ -65,6 +66,7 @@ function verificarAutenticacao(req, res, next) {
     'manager',
     'motoristas',
     'setores',
+    'historico',
     '/api/motoristas/todos',
     '/api/setores/todos'
   ];

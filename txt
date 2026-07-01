@@ -1,7 +1,0 @@
-git checkout -b minha-branch
-git status
-git add .
-git commit -m "alterações no server.js"
-git push -u braorigin minha-branch
-
-  <!--   <p>Descrição: ${setor.descricao || 'Nenhuma descrição'}</p> 
