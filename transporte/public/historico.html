@@ -33,7 +33,7 @@
 
     <div id="header-placeholder"></div>
 
-    <main>
+    <main id="principal">
 
         <!-- Título -->
         <div class="page-title-row">
@@ -104,10 +104,10 @@
                         <polyline points="20 6 9 17 4 12" />
                     </svg>
                     <select id="fStatus" onchange="aplicarFiltros()">
-                        <option>Todos os Status</option>
-                        <option>Fechadas</option>
-                        <option>Em andamento</option>
-                        <option>Abertas</option>
+                        <option >Todos os Status</option>
+                        <option value="fechado">Fechadas</option>
+                        <option value="em_andamento">Em andamento</option>
+                        <option value="aberto">Abertas</option>
                     </select>
                     <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
                         stroke-linecap="round" stroke-linejoin="round">
@@ -250,7 +250,7 @@
         const MESES = ["Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho", "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro" ];
 
         function badge(status) {
-            const cls = status === "fechado" ? "badge-green" : status === "em_andamento" ? "badge-blue" : status === "aberto" ? "badge-yellow" : "badge-amber";
+            const cls = status === "fechado" ? "badge-green" : status === "em_andamento" ? "badge-yellow" : status === "aberto" ? "badge-red" : "badge-amber";
             return `<span class="badge ${cls}">${status}</span>`;
         }
         function initials(n) { 
@@ -270,7 +270,6 @@
 
             //solicitações fechadas
             DADOS = todas
-                .filter(s => s.status === "fechado")
                 .map(mapearSolicitacao)
                 .sort((a, b) => new Date(b.fechadaEmRaw || 0) - new Date(a.fechadaEmRaw || 0));
             
@@ -303,7 +302,7 @@
                 fechadaEm: s.data_fechamento ? new Date(s.data_fechamento).toLocaleString('pt-BR') : "—",
                 fechadaEmRaw: s.data_fechamento,
                 dataPartidaRaw: s.data,
-                status: "fechado", 
+                status: s.status, 
                 ocorrencia: s.problema || "Não informado",
                 motoristaAnterior: s.motorista_anterior_nome || null,
             };
@@ -366,8 +365,7 @@
             const motoristasUnicos = new Set(filtrados.map(s => s.motorista).filter(m => m && m !== "—")).size;
             const setoresUnicos = new Set(filtrados.map(s => s.setor).filter(s => s && s !== "—")).size;
             const items = [
-                { label: "Filtradas", value: filtrados.length, sub: `de ${DADOS.length} total`, color: "blue" },
-                { label: "fechado", value: filtrados.length, sub: "100% do filtro atual", color: "green" },
+                { label: "Em Andamento", value: filtrados.length, sub: `de ${DADOS.length} total`, color: "green" },
                 { label: "Motoristas Envolvidos", value: motoristasUnicos, sub: "no filtro atual", color: "amber" },
                 { label: "Setores Atendidos", value: setoresUnicos, sub: "no filtro atual", color: "red" },
             ];
@@ -401,7 +399,7 @@
             row.innerHTML = chips.map((c, i) => `
         <span class="chip">${c.label}
      <button onclick="clearChip('${c.key}','${c.def}')">
-        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
      </button>
     </span>`).join("");
         }
@@ -533,17 +531,30 @@
             const sta = document.getElementById("fStatus").value;
             const per = document.getElementById("fPeriodo").value;
             const fec = lista.filter(s => s.status === "fechado").length;
-            const linhas = lista.map(s => `<tr>
+            const em_ = lista.filter(s => s.status === "em_andamento").length;
+            const abe = lista.filter(s => s.status === "aberto").length;
+           // Mapa de cores por status
+    const statusCores = {
+        fechado:       { bg: "#d1fae5", cor: "#065f46", label: "Fechado" },
+        em_andamento:  { bg: "#fef3c7", cor: "#92400e", label: "Em Andamento" },
+        aberto:        { bg: "#fee2e2", cor: "#991b1b", label: "Aberto" },
+        
+    };
+
+    const linhas = lista.map(s => {
+        const st = statusCores[s.status] || { bg: "#e5e7eb", cor: "#374151", label: s.status };
+        return `<tr>
     <td>#${s.id}</td><td>${s.solicitante}</td><td>${s.setor}</td><td>${s.destino}</td><td>${s.motorista}</td>
     <td style="white-space:nowrap">${s.dataPartida} ${s.horaPartida}</td>
     <td style="white-space:nowrap">${s.fechadaEm}</td>
-    <td><span style="padding:2px 8px;border-radius:9999px;font-size:11px;font-weight:600;background:#d1fae5;color:#065f46">${s.status}</span></td></tr>`).join("");
+    <td><span style="padding:2px 8px;border-radius:9999px;font-size:11px;font-weight:600;background:${st.bg};color:${st.cor}">${st.label}</span></td></tr>`;
+    }).join("");
             const html = `<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8"><title>Relatório</title>
 <style>body{font-family:Arial,sans-serif;font-size:12px;color:#1a2332;margin:0;padding:24px}.hdr{display:flex;justify-content:space-between;border-bottom:2px solid #2196a6;padding-bottom:12px;margin-bottom:18px}.hdr h1{font-size:17px;margin:4px 0 0;color:#2196a6}.hdr .org{font-size:10px;color:#6b7a8d;text-align:right}.fbox{background:#f0f9ff;border:1px solid #bae6fd;border-radius:6px;padding:9px 13px;margin-bottom:16px;font-size:11px;color:#0c4a6e}.fbox span{margin-right:16px}table{width:100%;border-collapse:collapse}th{background:#2196a6;color:#fff;text-align:left;padding:6px 8px;font-size:10px;text-transform:uppercase;letter-spacing:.05em}td{padding:5px 8px;border-bottom:1px solid #e2e8f0;font-size:11px}tr:nth-child(even) td{background:#f8fafc}.foot{margin-top:20px;font-size:10px;color:#9ca3af;border-top:1px solid #e5e7eb;padding-top:9px}.totals{font-weight:bold;margin-bottom:4px}@media print{body{padding:0}}</style></head><body>
 <div class="hdr"><div><div style="font-size:10px;color:#6b7a8d">GOVERNO DO ESTADO DO AMAZONAS</div><h1>Relatório de Histórico de Solicitações de Transporte</h1></div><div class="org">Secretaria de Produção Rural<br/>Gerado em: ${new Date().toLocaleString("pt-BR")}</div></div>
 <div class="fbox"><strong>Filtros aplicados:</strong><span>Motorista: ${mot}</span><span>Status: ${sta}</span><span>Período: ${per}</span><span>Total: ${lista.length} registro(s)</span></div>
 <table><thead><tr><th>#</th><th>Solicitante</th><th>Setor</th><th>Destino</th><th>Motorista</th><th>Saída</th><th>Encerrada em</th><th>Status</th></tr></thead><tbody>${linhas}</tbody></table>
-<div class="foot"><div class="totals">Fechadas: ${fec}</div>Secretaria de Produção Rural — Sistema de Gerenciamento de Transporte</div>
+<div class="foot"><div class="totals">Fechadas: ${fec}</div><div class="totals">Em Andamento: ${em_}</div><div class="totals">Abertas: ${abe}</div> Secretaria de Produção Rural — Sistema de Gerenciamento de Transporte</div>
 </body></html>`;
             const w = window.open("", "_blank");
             if (!w) { alert("Habilite pop-ups para gerar o PDF."); return; }

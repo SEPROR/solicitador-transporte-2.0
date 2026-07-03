@@ -1,0 +1,28 @@
+function gerarPDF(lista) {
+    lista = lista || filtrados;
+    const mot = document.getElementById("fMotorista").value;
+    const sta = document.getElementById("fStatus").value;
+    const per = document.getElementById("fPeriodo").value;
+    const fec = lista.filter(s => s.status === "fechado").length;
+    const em_ = lista.filter(s => s.status === "em_andamento").length;
+    const abe = lista.filter(s => s.status === "aberto").length;
+
+    // Mapa de cores por status
+    const statusCores = {
+        fechado:       { bg: "#d1fae5", cor: "#065f46", label: "Fechado" },
+        em_andamento:  { bg: "#fef3c7", cor: "#92400e", label: "Em Andamento" },
+        aberto:        { bg: "#fee2e2", cor: "#991b1b", label: "Aberto" },
+        cancelado:     { bg: "#e5e7eb", cor: "#374151", label: "Cancelado" }
+    };
+
+    const linhas = lista.map(s => {
+        const st = statusCores[s.status] || { bg: "#e5e7eb", cor: "#374151", label: s.status };
+        return `<tr>
+    <td>#${s.id}</td><td>${s.solicitante}</td><td>${s.setor}</td><td>${s.destino}</td><td>${s.motorista}</td>
+    <td style="white-space:nowrap">${s.dataPartida} ${s.horaPartida}</td>
+    <td style="white-space:nowrap">${s.fechadaEm}</td>
+    <td><span style="padding:2px 8px;border-radius:9999px;font-size:11px;font-weight:600;background:${st.bg};color:${st.cor}">${st.label}</span></td></tr>`;
+    }).join("");
+
+    const html = `<!DOCTYPE html>...`; // resto igual
+}
