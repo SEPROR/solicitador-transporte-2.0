@@ -775,23 +775,65 @@ button[type="submit"]::before {
       border-color: var(--primary);
       box-shadow: 0 0 0 3px rgba(33,150,166,.15);
     }
-    .chips-row {
-      display: flex; flex-wrap: wrap; gap: 8px;
-      padding: 12px 20px; border-top: 1px solid var(--border);
-    }
-    .chip {
-      display: inline-flex; align-items: center; gap: 6px;
-      background: var(--secondary); color: #1a5f7a;
-      padding: 4px 10px; border-radius: 9999px;
-      font-size: 12px; font-weight: 500 ;
-     
-    }
-    .chip button {
-      background: none; border: none; cursor: pointer;
-      color: inherit; display: flex; align-items: center; transition: color .15s;
-    }
-    .chip button:hover { color: #c0392b; }
+.chips-row {
+  display: flex; 
+  flex-wrap: wrap; 
+  gap: 8px;
+  padding: 12px 20px; 
+  border-top: 1px solid var(--border);
+  align-items: center; 
+}
 
+.chip {
+  display: inline-flex; 
+  align-items: center; 
+  gap: 8px; 
+  background: var(--secondary); 
+  color: #1a5f7a;
+  padding: 8px 14px; 
+  border-radius: 9999px;
+  font-size: 12px; 
+  font-weight: 500;
+  line-height: normal;
+}
+
+.chip button {
+
+  background: #1a5f7a; 
+  border: none; 
+  cursor: pointer;
+  color: #ffffff; 
+  display: flex; 
+  align-items: center; 
+  justify-content: center;
+  
+  
+  width: 22px; 
+  height: 22px; 
+  border-radius: 50%; 
+  
+  padding: 0; 
+  margin: 0;
+  transition: all .15s ease-in-out;
+}
+
+.chip button:hover { 
+  
+  background: #113f52; 
+  color: #ffffff; 
+}
+
+
+.chip button svg,
+.chip button span {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px; 
+  width: 10px;
+  height: 10px;
+  line-height: 1;
+}
     /* ── TABLE ── */
     .table-header-row {
       display: flex; align-items: center; justify-content: space-between;
